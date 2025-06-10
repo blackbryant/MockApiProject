@@ -6,7 +6,7 @@ using mockAPI.Models;
 
 namespace mockAPI.Services
 {
-    public interface IBookService : IGenericService<BookDTO>
+    public interface IBookService : IGenericService<Book>
     {
         
     }

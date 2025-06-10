@@ -4,3 +4,6 @@ GET {{mockAPI_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+GET {{mockAPI_HostAddress}}/api/health
+Accept: application/json
+

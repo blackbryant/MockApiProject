@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace mockAPI.Models
 {
-    public class EventRegistrationDTO
+    public class EventRegistrationDTO :IValidatableObject
     {
         public int Id { get; set; }
 
@@ -31,6 +31,25 @@ namespace mockAPI.Models
         public override string ToString()
         {
             return $"Id: {Id}, FullName: {FullName}, Email: {Email}, EventName: {EventName}, EventDate: {EventDate.ToShortDateString()}, DaysAttending: {DaysAttending}";
+        }
+
+        //符合條件就會返回驗證失敗  
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (EventDate < DateTime.Now)
+            {
+                yield return new ValidationResult(
+                    "Event date must be in the future.",
+                    new[] { nameof(EventDate) });
+
+            }
+
+            if ((FullName.Contains("Garry") || FullName.Contains("Luke")) && EventName == "C# Conference")
+            {
+                yield return new ValidationResult(
+                    $"{FullName} is banned from {EventName}.",
+                    new[] { nameof(FullName), nameof(EventName) });
+            }
         }
     }
 }

@@ -16,8 +16,27 @@ namespace mockAPI.DataContext
         public DbSet<Product> Products { get; set; } = null!;
 
         public DbSet<EventRegistration> EventRegistrations { get; set; } = null!;
-        
+
         public DbSet<Book> Books { get; set; } = null!;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Book>(entity =>
+            {
+                entity.HasKey(b => b.Id);
+                entity.Property(b => b.Title).IsRequired().HasMaxLength(200);
+                entity.Property(b => b.Author).IsRequired().HasMaxLength(100);
+                entity.Property(b => b.PublicationDate).IsRequired();
+                entity.Property(b => b.Genre).HasMaxLength(50);
+                entity.Property(b => b.ISBN).IsRequired().HasMaxLength(13);
+                entity.Property(b => b.Summary).HasMaxLength(1000);
+                
+            });
+
+        }
+
 
         // protected override void OnModelCreating(ModelBuilder modelBuilder)
         // {

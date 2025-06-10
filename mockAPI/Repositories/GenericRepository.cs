@@ -30,7 +30,10 @@ namespace mockAPI.Repositories
         {
             await _context.Set<TEntity>().AddAsync(entity);
             await _context.SaveChangesAsync();
-            return entity;
+
+            TEntity? newEntity = await _context.Set<TEntity>().FindAsync(entity);
+
+            return newEntity;
         }
 
         public void Update(TEntity entity)
