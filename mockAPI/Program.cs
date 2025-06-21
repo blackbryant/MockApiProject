@@ -1,16 +1,21 @@
 using System.ComponentModel.DataAnnotations;
 using System.Data;
+using System.Text;
 using Bogus;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.IdentityModel.Tokens;
 using mockAPI.Config;
 using mockAPI.DataContext;
 using mockAPI.Middleware;
+using mockAPI.Middleware.Setting;
 using mockAPI.Models;
 using mockAPI.Repositories;
 using mockAPI.Services;
@@ -25,6 +30,8 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<IEventRegistrationsRepository, EventRegistrationsRepository>();
 builder.Services.AddScoped<IProductReadService, ProductReadService>();
+builder.Services.AddScoped<IBooksRepository, BooksRepository>();
+builder.Services.AddScoped<IBookService, BookService>();
 
 builder.Services.AddScoped<IEventRegistractionsService, EventRegistractionsService>();
 
@@ -48,6 +55,12 @@ string connectionString = "Data Source=E:SqliteDB.db";
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(connectionString));
+    
+builder.Services.AddIdentityCore<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+
 
 // Setting Validate
 // 一個個設定
@@ -60,17 +73,27 @@ builder.Services.AddValidatorsFromAssembly(validator);
 
 var connectionStringBuilder = new SqliteConnectionStringBuilder();
 connectionStringBuilder.DataSource = connectionString;
+builder.Services.AddTransient<IDbConnection>(sp => new SqliteConnection(connectionString));
+
 
 builder.Services.AddConfigureProblemDetails();
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddValidatorsFromAssemblyContaining<EventRegistrationDTOValidator>();
-builder.Services.AddTransient<IDbConnection>(sp => new SqliteConnection(connectionString));
 
-builder.Services.AddHealthChecks()
-    .AddCheck<DatabasePerformanceHealthCheck>("sqliteDB", 
-        tags: ["database"]);
+
+
+///JWT Settings
+builder.Services.AddJwtAuthentication(builder.Configuration);
+
+// ForwardedHeaders Middleware
+builder.Services.AddForwardedHeaders();
+
+
+// builder.Services.AddHealthChecks()
+//     .AddCheck<DatabasePerformanceHealthCheck>("sqliteDB", 
+//         tags: ["database"]);
 
 var app = builder.Build();
 
@@ -230,45 +253,52 @@ app.MapOpenApi();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-     app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/openapi/v1.json", "v1");
-    });
+    app.UseSwaggerUI(options =>
+   {
+       options.SwaggerEndpoint("/openapi/v1.json", "v1");
+   });
+
 }
 
+app.UseRouting();
+app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapHealthChecks("/api/health", new HealthCheckOptions()
-{
-    ResultStatusCodes =
-    {
-        [HealthStatus.Healthy] = StatusCodes.Status200OK,
-        [HealthStatus.Degraded] = StatusCodes.Status200OK,
-        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+// app.MapHealthChecks("/api/health", new HealthCheckOptions()
+// {
+//     ResultStatusCodes =
+//     {
+//         [HealthStatus.Healthy] = StatusCodes.Status200OK,
+//         [HealthStatus.Degraded] = StatusCodes.Status200OK,
+//         [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
 
-    },
-    ResponseWriter = async (context, report) =>
-    {
-        context.Response.ContentType = "application/json";
-        var response = new
-        {
-            status = report.Status.ToString(),
-            checks = report.Entries.Select(entry => new
-            {
-                name = entry.Key,
-                status = entry.Value.Status.ToString(),
-                description = entry.Value.Description,
-                duration = entry.Value.Duration
-            }),
-            totalDuration = report.TotalDuration
+//     },
+//     ResponseWriter = async (context, report) =>
+//     {
+//         context.Response.ContentType = "application/json";
+//         var response = new
+//         {
+//             status = report.Status.ToString(),
+//             checks = report.Entries.Select(entry => new
+//             {
+//                 name = entry.Key,
+//                 status = entry.Value.Status.ToString(),
+//                 description = entry.Value.Description,
+//                 duration = entry.Value.Duration
+//             }),
+//             totalDuration = report.TotalDuration
 
-        };
-        await context.Response.WriteAsJsonAsync(response);
-    }
+//         };
+//         await context.Response.WriteAsJsonAsync(response);
+//     }
 
 
-});
+// });
+
+ 
 
 
 

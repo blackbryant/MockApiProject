@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using mockAPI.DataContext;
 using mockAPI.Models;
@@ -15,14 +16,14 @@ namespace mockAPI.Controller
     public class BookController : ControllerBase
     {
         
-        private readonly BookService _bookService;
-        public BookController( BookService bookService)
+        private readonly IBookService _bookService;
+        public BookController(IBookService bookService)
         {
 
             _bookService = bookService;
         }
    
-
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult> GetAll()
         {

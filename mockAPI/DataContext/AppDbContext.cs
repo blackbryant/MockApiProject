@@ -4,11 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using mockAPI.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace mockAPI.DataContext
 {
-    public class AppDbContext : DbContext
-    {
+    public class AppDbContext : IdentityDbContext
+    { 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }

@@ -11,11 +11,11 @@ namespace mockAPI.Services
     public class BookService : GenericService<Book>, IBookService
     {
 
-        private readonly BooksRepository _booksRepository;
+        private readonly IBooksRepository _booksRepository;
 
-        public BookService(BooksRepository booksRepository) : base(booksRepository)
+        public BookService(IBooksRepository booksRepository) : base(booksRepository)
         {
-            _booksRepository = booksRepository ?? throw new ArgumentNullException(nameof(booksRepository));
+            this._booksRepository = booksRepository ?? throw new ArgumentNullException(nameof(booksRepository));
         }
 
          
