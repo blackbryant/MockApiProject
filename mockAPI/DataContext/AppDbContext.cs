@@ -14,6 +14,11 @@ namespace mockAPI.DataContext
         {
         }
 
+        // 設定 角色-權限 設定
+        public DbSet<Permission> Permissions => Set<Permission>();
+        public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+
+
         public DbSet<Product> Products { get; set; } = null!;
 
         public DbSet<EventRegistration> EventRegistrations { get; set; } = null!;
@@ -23,6 +28,21 @@ namespace mockAPI.DataContext
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<RolePermission>()
+            .HasKey(rp => new { rp.RoleId, rp.PermissionId });
+
+             modelBuilder.Entity<RolePermission>()
+            .HasOne(rp => rp.Role)
+            .WithMany()
+            .HasForeignKey(rp => rp.RoleId);
+
+             modelBuilder.Entity<RolePermission>()
+            .HasOne(rp => rp.Permission)
+            .WithMany()
+            .HasForeignKey(rp => rp.PermissionId);
+
+
 
             modelBuilder.Entity<Book>(entity =>
             {

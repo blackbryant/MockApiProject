@@ -10,6 +10,8 @@ using System.Text;
 using mockAPI.Models;
 using mockAPI.Middleware.Setting;
 using Microsoft.Extensions.Options;
+using mockAPI.DataContext;
+using Microsoft.EntityFrameworkCore;
 
 namespace mockAPI.Controller
 {
@@ -23,8 +25,12 @@ namespace mockAPI.Controller
 
         private readonly IOptions<JwtSettings> jwtSettings;
 
-        public AccountController(UserManager<IdentityUser> userManager,  RoleManager<IdentityRole> roleManager, IOptions<JwtSettings> jwtSettings)
-        {
+        private readonly AppDbContext _context;
+
+
+        public AccountController(AppDbContext appDbContext, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IOptions<JwtSettings> jwtSettings)
+        {   
+            this._context = appDbContext;
             this._userManager = userManager;
             this._roleManager = roleManager;
             this.jwtSettings = jwtSettings;
@@ -160,9 +166,36 @@ namespace mockAPI.Controller
                 new Claim(ClaimTypes.Name, user.UserName ?? string.Empty)
             };
 
+
+            //Role Permissions
+            var roles = await _userManager.GetRolesAsync(user);
+            List<string> roleIds = new List<string>();
+            foreach (var role in roles)
+            {
+                var roleEntity = await _roleManager.FindByNameAsync(role);
+                if (roleEntity != null)
+                {
+                    roleIds.Add(roleEntity.Id);
+                }
+            }
+                
+            var permissionCodes = await _context.RolePermissions
+                .Where(rp => roleIds.Contains(rp.RoleId))
+                .Include(rp => rp.Permission)
+                .Select(rp => rp.Permission.Code)
+                .Distinct()
+                .ToListAsync();
+            
+            
+           // claims.AddRange(permissionCodes.Select(p => new Claim("permission", p)));
+             foreach (var permissionCode in permissionCodes)
+            {
+                claims.Add(new Claim("permission", permissionCode));
+                Console.WriteLine($"User {user.UserName} has role: {permissionCode}");
+            }
+
             // Add user roles to claims
-            var userRoles = await _userManager.GetRolesAsync(user);
-            foreach (var role in userRoles)
+            foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
                 Console.WriteLine($"User {user.UserName} has role: {role}");

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using mockAPI.Auth;
 using mockAPI.DataContext;
 using mockAPI.Models;
 using mockAPI.Repositories;
@@ -22,8 +23,21 @@ namespace mockAPI.Controller
 
             _bookService = bookService;
         }
+
+        [HttpGet("TestAuth")]
+        [DynamicPermission]
+        [ProducesResponseType(statusCode: 200, Type = typeof(string))]
+        [ProducesResponseType(statusCode: 400, Type = typeof(ProblemDetails))]
+        [ProducesResponseType(statusCode: 401, Type = typeof(ProblemDetails))]
+        public IActionResult TestAuth()
+        {
+            
+            return Ok("Test Auth Success"); 
+         }
+
    
-        [Authorize(Roles = "Admin")]
+       // [Authorize(Roles = "Admin")]
+
         [HttpGet]
         public async Task<ActionResult> GetAll()
         {
