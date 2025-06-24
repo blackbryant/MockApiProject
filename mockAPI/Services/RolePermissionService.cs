@@ -40,5 +40,12 @@ namespace mockAPI.Services
         {
             _repository.Update(entity);
         }
+        
+        public Task<bool> RoleHasPermissionAsync(List<string> roleIds, string requiredPermission)
+        {
+            return _repository.RoleHasPermissionAsync(roleIds, requiredPermission);
+        }
+        
+
     }
 }

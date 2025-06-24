@@ -35,9 +35,10 @@ namespace mockAPI.Controller
             return Ok("Test Auth Success"); 
          }
 
-   
-       // [Authorize(Roles = "Admin")]
 
+        // [Authorize(Roles = "Admin")]
+       
+        [DynamicPermission]
         [HttpGet]
         public async Task<ActionResult> GetAll()
         {
@@ -60,6 +61,8 @@ namespace mockAPI.Controller
             return Ok(books);
         }
 
+
+        [DynamicPermission]
         [HttpGet("{id}")]
         [ProducesResponseType(statusCode: 200, Type = typeof(BookDTO))]
         [ProducesResponseType(statusCode: 400, Type = typeof(ProblemDetails))]

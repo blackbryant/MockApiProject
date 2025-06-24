@@ -29,11 +29,15 @@ builder.Services.AddOpenApi();
 
 
 builder.Services.AddScoped<IEventRegistrationsRepository, EventRegistrationsRepository>();
+builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 builder.Services.AddScoped<IProductReadService, ProductReadService>();
 builder.Services.AddScoped<IBooksRepository, BooksRepository>();
 builder.Services.AddScoped<IBookService, BookService>();
-
 builder.Services.AddScoped<IEventRegistractionsService, EventRegistractionsService>();
+builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
+builder.Services.AddScoped<IUserRolesService, UserRolesService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
 
 builder.Services.AddCors(options => 
 {

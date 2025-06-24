@@ -8,6 +8,9 @@ namespace mockAPI.Services
 {
     public interface IPermissionService : IGenericService<Permission>
     {
-        
+
+
+
+
     }
 }

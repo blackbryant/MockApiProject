@@ -66,6 +66,17 @@ namespace mockAPI.Repositories
 
         }
 
+        public async Task<bool> RoleHasPermissionAsync(List<string> roleIds, string requiredPermission )
+        {
+            var hasPermission = await _dbContext.RolePermissions
+                                .Where(rp => roleIds.Contains(rp.RoleId))
+                                .Include(rp => rp.Permission)
+                                .AnyAsync(rp => rp.Permission.Code.ToLower() == requiredPermission.ToLower());
+
+            Console.WriteLine($"Role IDs: {string.Join(", ", roleIds)}- Required Permission: {requiredPermission} - Has Permission: {hasPermission}");
+            return hasPermission;
+
+        }
     }
 
    

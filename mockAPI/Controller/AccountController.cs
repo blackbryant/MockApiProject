@@ -157,51 +157,16 @@ namespace mockAPI.Controller
                 throw new ArgumentException("User does not have a valid username");
             }
 
+            Console.WriteLine($"user.Idfff: {user.Id}");
             // Create claims for the JWT token
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserName ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.UserName ?? string.Empty)
+                new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
+                new Claim("userId", user.Id )
             };
-
-
-            //Role Permissions
-            var roles = await _userManager.GetRolesAsync(user);
-            List<string> roleIds = new List<string>();
-            foreach (var role in roles)
-            {
-                var roleEntity = await _roleManager.FindByNameAsync(role);
-                if (roleEntity != null)
-                {
-                    roleIds.Add(roleEntity.Id);
-                }
-            }
-                
-            var permissionCodes = await _context.RolePermissions
-                .Where(rp => roleIds.Contains(rp.RoleId))
-                .Include(rp => rp.Permission)
-                .Select(rp => rp.Permission.Code)
-                .Distinct()
-                .ToListAsync();
-            
-            
-           // claims.AddRange(permissionCodes.Select(p => new Claim("permission", p)));
-             foreach (var permissionCode in permissionCodes)
-            {
-                claims.Add(new Claim("permission", permissionCode));
-                Console.WriteLine($"User {user.UserName} has role: {permissionCode}");
-            }
-
-            // Add user roles to claims
-            foreach (var role in roles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-                Console.WriteLine($"User {user.UserName} has role: {role}");
-            }
-
-            claims.Add(new Claim(ClaimTypes.Name, user.UserName??string.Empty));
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Value.Key));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
